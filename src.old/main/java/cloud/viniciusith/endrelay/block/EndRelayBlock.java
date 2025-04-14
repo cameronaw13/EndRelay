@@ -1,7 +1,7 @@
 package cloud.viniciusith.endrelay.block;
 
 import cloud.viniciusith.endrelay.block.entity.EndRelayBlockEntity;
-//import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.MapCodec;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
@@ -39,12 +39,10 @@ import java.util.Optional;
 
 public class EndRelayBlock extends Block implements BlockEntityProvider {
     public static final BooleanProperty CHARGED = BooleanProperty.of("charged");
-    public static final BooleanProperty HAS_COMPASS = BooleanProperty.of("has_compass");
 
     public EndRelayBlock(Settings settings) {
         super(settings);
         this.setDefaultState(this.stateManager.getDefaultState().with(CHARGED, false));
-        this.setDefaultState(this.stateManager.getDefaultState().with(HAS_COMPASS, false));
     }
 
     @Nullable
@@ -55,16 +53,18 @@ public class EndRelayBlock extends Block implements BlockEntityProvider {
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(CHARGED, HAS_COMPASS);
+        builder.add(CHARGED);
     }
 
-    /*@Override
-    protected MapCodec<? extends Block> getCodec() {
-        return null;
-    }*/
 
     @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+    protected MapCodec<? extends Block> getCodec() {
+        return null;
+    }
+
+    @Override
+    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand,
+            BlockHitResult hit) {
         EndRelayBlockEntity blockEntity = (EndRelayBlockEntity) world.getBlockEntity(pos);
         if (blockEntity == null) {
             return ActionResult.PASS;
@@ -83,7 +83,7 @@ public class EndRelayBlock extends Block implements BlockEntityProvider {
             }
 
             BlockPos teleportDestinationPos = NbtHelper.toBlockPos(
-                heldItem.getOrCreateNbt().getCompound(CompassItem.LODESTONE_POS_KEY)
+                    heldItem.getOrCreateNbt().getCompound(CompassItem.LODESTONE_POS_KEY)
             );
 
             setTarget(blockEntity, teleportDestinationPos);
@@ -124,14 +124,14 @@ public class EndRelayBlock extends Block implements BlockEntityProvider {
         if (state.get(CHARGED)) {
             if (random.nextInt(100) == 0) {
                 world.playSound(
-                    null,
-                    (double) pos.getX() + 0.5,
-                    (double) pos.getY() + 0.5,
-                    (double) pos.getZ() + 0.5,
-                    SoundEvents.BLOCK_RESPAWN_ANCHOR_AMBIENT,
-                    SoundCategory.BLOCKS,
-                    1.0F,
-                    1.0F
+                        null,
+                        (double) pos.getX() + 0.5,
+                        (double) pos.getY() + 0.5,
+                        (double) pos.getZ() + 0.5,
+                        SoundEvents.BLOCK_RESPAWN_ANCHOR_AMBIENT,
+                        SoundCategory.BLOCKS,
+                        1.0F,
+                        1.0F
                 );
             }
 
@@ -148,14 +148,14 @@ public class EndRelayBlock extends Block implements BlockEntityProvider {
         world.setBlockState(pos, blockState, 3);
         world.emitGameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Emitter.of(charger, blockState));
         world.playSound(
-            null,
-            (double) pos.getX() + 0.5,
-            (double) pos.getY() + 0.5,
-            (double) pos.getZ() + 0.5,
-            SoundEvents.BLOCK_RESPAWN_ANCHOR_CHARGE,
-            SoundCategory.BLOCKS,
-            1.0F,
-            1.0F
+                null,
+                (double) pos.getX() + 0.5,
+                (double) pos.getY() + 0.5,
+                (double) pos.getZ() + 0.5,
+                SoundEvents.BLOCK_RESPAWN_ANCHOR_CHARGE,
+                SoundCategory.BLOCKS,
+                1.0F,
+                1.0F
         );
     }
 
@@ -164,19 +164,19 @@ public class EndRelayBlock extends Block implements BlockEntityProvider {
         world.setBlockState(pos, blockState, 3);
         world.emitGameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Emitter.of(null, blockState));
         world.playSound(
-            null,
-            (double) pos.getX() + 0.5,
-            (double) pos.getY() + 0.5,
-            (double) pos.getZ() + 0.5,
-            SoundEvents.BLOCK_RESPAWN_ANCHOR_DEPLETE,
-            SoundCategory.BLOCKS,
-            1.0F,
-            1.0F,
-            0
+                null,
+                (double) pos.getX() + 0.5,
+                (double) pos.getY() + 0.5,
+                (double) pos.getZ() + 0.5,
+                SoundEvents.BLOCK_FIRE_EXTINGUISH,
+                SoundCategory.BLOCKS,
+                1.0F,
+                1.0F
         );
     }
 
-    public static void setTarget(EndRelayBlockEntity blockEntity, BlockPos teleportDestinationPos) {
+    public static void setTarget(EndRelayBlockEntity blockEntity,
+            BlockPos teleportDestinationPos) {
         blockEntity.setRelayDestination(teleportDestinationPos);
     }
 
@@ -197,20 +197,27 @@ public class EndRelayBlock extends Block implements BlockEntityProvider {
         Objects.requireNonNull(explodedPos);
         final boolean bl2 = world.getFluidState(explodedPos.up()).isIn(FluidTags.WATER);
         ExplosionBehavior explosionBehavior = new ExplosionBehavior() {
-            public Optional<Float> getBlastResistance(Explosion explosion, BlockView world, BlockPos pos, BlockState blockState, FluidState fluidState) {
-                return pos.equals(explodedPos) && bl2 ? Optional.of(Blocks.WATER.getBlastResistance())
-                    : super.getBlastResistance(explosion, world, pos, blockState, fluidState);
+            public Optional<Float> getBlastResistance(Explosion explosion, BlockView world, BlockPos pos,
+                    BlockState blockState, FluidState fluidState) {
+                return pos.equals(explodedPos) && bl2 ? Optional.of(Blocks.WATER.getBlastResistance()) :
+                        super.getBlastResistance(
+                                explosion,
+                                world,
+                                pos,
+                                blockState,
+                                fluidState
+                        );
             }
         };
         Vec3d vec3d = explodedPos.toCenterPos();
         world.createExplosion(
-            null,
-            world.getDamageSources().badRespawnPoint(vec3d),
-            explosionBehavior,
-            vec3d,
-            5.0F,
-            true,
-            World.ExplosionSourceType.BLOCK
+                null,
+                world.getDamageSources().badRespawnPoint(vec3d),
+                explosionBehavior,
+                vec3d,
+                5.0F,
+                true,
+                World.ExplosionSourceType.BLOCK
         );
     }
 
@@ -220,10 +227,10 @@ public class EndRelayBlock extends Block implements BlockEntityProvider {
 
     public static FabricBlockSettings getBlockProperties() {
         return FabricBlockSettings.create()
-            .mapColor(MapColor.BLACK)
-            .instrument(Instrument.BASEDRUM)
-            .requiresTool()
-            .strength(50.0F, 1200.0F)
-            .luminance(EndRelayBlock::getLuminance);
+                .mapColor(MapColor.BLACK)
+                .instrument(Instrument.BASEDRUM)
+                .requiresTool()
+                .strength(50.0F, 1200.0F)
+                .luminance(EndRelayBlock::getLuminance);
     }
 }

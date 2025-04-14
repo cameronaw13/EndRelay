@@ -12,7 +12,6 @@ import net.minecraft.nbt.NbtHelper;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
-import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -22,21 +21,12 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.SingleStackInventory;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.entity.player.PlayerEntity;
-import java.util.Objects;
-import net.minecraft.entity.ItemEntity;
-
 import java.util.Optional;
 
 import static cloud.viniciusith.endrelay.EndRelayMod.END_RELAY_BLOCK;
 
-public class EndRelayBlockEntity extends BlockEntity implements SingleStackInventory {
+public class EndRelayBlockEntity extends BlockEntity {
     private BlockPos relayDestination;
-    private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(this.size(), ItemStack.EMPTY);
 
     public EndRelayBlockEntity(BlockPos pos, BlockState state) {
         super(EndRelayMod.END_RELAY_BLOCK_ENTITY, pos, state);
@@ -81,9 +71,9 @@ public class EndRelayBlockEntity extends BlockEntity implements SingleStackInven
         }
 
         Optional<Vec3d> targetPos = RespawnAnchorBlock.findRespawnPosition(
-            player.getType(),
-            player.getWorld(),
-            relayDestination
+                player.getType(),
+                player.getWorld(),
+                relayDestination
         );
 
         if (targetPos.isEmpty()) {
@@ -93,56 +83,16 @@ public class EndRelayBlockEntity extends BlockEntity implements SingleStackInven
 
         World world = player.getEntityWorld();
         world.playSound(
-            null,
-            player.getX(),
-            player.getY(),
-            player.getZ(),
-            SoundEvents.ENTITY_ENDERMAN_TELEPORT,
-            SoundCategory.BLOCKS,
-            1.0f,
-            1.0f
+                null,
+                player.getX(),
+                player.getY(),
+                player.getZ(),
+                SoundEvents.ENTITY_ENDERMAN_TELEPORT,
+                SoundCategory.BLOCKS,
+                1.0f,
+                1.0f
         );
         player.teleport(targetPos.get().getX(), targetPos.get().getY(), targetPos.get().getZ());
-    }
-
-    @Override
-    public ItemStack getStack(int slot) {
-        return this.inventory.get(slot);
-    }
-
-    @Override
-    public ItemStack removeStack(int slot, int amount) {
-        ItemStack itemStack = (ItemStack)Objects.requireNonNullElse(this.inventory.get(slot), ItemStack.EMPTY);
-        this.inventory.set(slot, ItemStack.EMPTY);
-        
-        return itemStack;
-    }
-
-    @Override
-    public void setStack(int slot, ItemStack stack) {
-        if (stack.isIn(ItemTags.COMPASSES) && this.world != null) {
-            this.inventory.set(slot, stack);
-        }
-    }
-
-    @Override
-    public boolean canPlayerUse(PlayerEntity player) {
-        return Inventory.canPlayerUse(this, player);
-    }
-
-    public void dropCompass() {
-        if (this.world != null && !this.world.isClient) {
-            BlockPos blockPos = this.getPos();
-            ItemStack itemStack = this.getStack();
-            if (!itemStack.isEmpty()) {
-                this.removeStack();
-                Vec3d vec3d = Vec3d.add(blockPos, 0.5, 1.01, 0.5).addRandom(this.world.random, 0.35F);
-                ItemStack itemStack2 = itemStack.copy();
-                ItemEntity itemEntity = new ItemEntity(this.world, vec3d.getX(), vec3d.getY(), vec3d.getZ(), itemStack2);
-                itemEntity.setToDefaultPickupDelay();
-                this.world.spawnEntity(itemEntity);
-            }
-        }
     }
 
     // Helper Method
@@ -162,8 +112,8 @@ public class EndRelayBlockEntity extends BlockEntity implements SingleStackInven
 
     public static BlockEntityType<EndRelayBlockEntity> getBlockEntityType() {
         return FabricBlockEntityTypeBuilder.create(
-            EndRelayBlockEntity::new,
-            END_RELAY_BLOCK
+                EndRelayBlockEntity::new,
+                END_RELAY_BLOCK
         ).build();
     }
 }

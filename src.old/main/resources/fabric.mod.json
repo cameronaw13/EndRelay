@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "endrelay",
+  "version": "${version}",
+  "name": "End Relay",
+  "description": "My opiniated version of the End Relay block from youtuber Kenadian.",
+  "authors": [
+    "Viniciusith"
+  ],
+  "contact": {
+    "repo": "https://github.com/viniciusith/EndRelay"
+  },
+  "license": "GPL-3.0",
+  "icon": "assets/endrelay/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "cloud.viniciusith.endrelay.client.EndRelayClient"
+    ],
+    "main": [
+      "cloud.viniciusith.endrelay.EndRelayMod"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
